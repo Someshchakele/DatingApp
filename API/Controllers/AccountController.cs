@@ -4,16 +4,17 @@ using System.Text;
 using API.Data;
 using API.DTOs;
 using API.Entities;
+using API.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace API.Controllers;
 
-public class AccountController(AppDbContext context): BaseApiController
+public class AccountController(AppDbContext context, ITokenService tokenService): BaseApiController
 {
     [HttpPost("register")]
 
-    public async Task<ActionResult<AppUser>> Register(RegisterDto registerDto)
+    public async Task<ActionResult<UserDto>> Register(RegisterDto registerDto)
     {
         if(await EmailExits(registerDto.Email)) return BadRequest("Email Id already exits");
         using var hmac = new HMACSHA512();
@@ -27,12 +28,19 @@ public class AccountController(AppDbContext context): BaseApiController
         };
         context.Users.Add(user);
         await context.SaveChangesAsync();
-        return user;
+        
+        return new UserDto
+        {
+            Id = user.Id,
+            DisplayName = user.DisplayName,
+            Email = user.Email,
+            Token = tokenService.CreateToken(user)
+        };
     }
 
     [HttpPost("login")]
 
-    public async Task<ActionResult<AppUser>> Login(LoginDto login)
+    public async Task<ActionResult<UserDto>> Login(LoginDto login)
     {
       var user = await context.Users.SingleOrDefaultAsync(x => x.Email == login.Email);
 
@@ -47,7 +55,13 @@ public class AccountController(AppDbContext context): BaseApiController
             if(computedHash[i] != user.PasswordHash[i]) return Unauthorized("Invalid Password");
         }
 
-      return user;
+      return new UserDto
+      {
+          Id = user.Id,
+          DisplayName = user.DisplayName,
+          Email = user.Email,
+          Token = tokenService.CreateToken(user)
+      };
     }
 
     private async Task<bool> EmailExits(string email)
