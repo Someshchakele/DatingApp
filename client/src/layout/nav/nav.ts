@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { AccountService } from '../../core/services/account-service';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { ToastService } from '../../core/services/toast-service';
+import { BusyService } from '../../core/services/busy-service';
 
 @Component({
   selector: 'app-nav',
@@ -15,6 +16,7 @@ export class Nav {
   protected creds: any = {}
   protected router = inject(Router)
   private toast = inject(ToastService)
+  protected busyService = inject(BusyService);
 
 
 
