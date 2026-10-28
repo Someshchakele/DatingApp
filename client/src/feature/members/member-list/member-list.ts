@@ -66,6 +66,7 @@ onFilterChange(data: MemberParams) {
 
 resetFilters() {
     this.memberParams = new MemberParams();
+    this.updatedParams = new MemberParams();
     this.loadMembers();
 }
 
